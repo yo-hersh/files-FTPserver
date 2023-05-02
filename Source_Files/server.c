@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include "../Header_Files/utils.h"
+#include "../Header_Files/files.h"
+#include "../Header_Files/users.h"
 
 void *conn_handler(void *args);
 void mange_server();
@@ -139,6 +141,5 @@ void mange_server()
         {
             puts("created successfully");
         }
-        
     }
 }
