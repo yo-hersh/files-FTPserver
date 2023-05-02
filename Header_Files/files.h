@@ -2,28 +2,16 @@
 #define FILES_H
 #include "utils.h"
 
-typedef struct _BSTNode
+typedef struct _BSTFiles
 {
     char file_name[20];
-    struct _BSTNode *left, *right;
-} BSTNode;
+    struct _BSTFiles *left, *right;
+} BSTFiles;
 
-BSTNode *get_files()
-{    
-    ////////////// return a header of the bstNode of all lists 
-}
+BSTFiles *get_files_list();
 
-int upload_file()
-{
-    ///////////// upload file
+int upload_file();
 
-    ///////////// add the file to the bstNode
-}
-
-int download_file()
-{
-    ///////////// down file
-
-}
+int download_file();
 
 #endif
