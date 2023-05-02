@@ -6,12 +6,15 @@
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 #define MAX_LEN 1024
 
+void *conn_handler(void *args);
+
 int main(int argc, char **argv)
 {
-    int sockfd, new_sock;
+    int sockfd;
     struct sockaddr_in servaddr = {}, cliaddr = {};
     socklen_t len = sizeof(cliaddr);
     char buffer[MAX_LEN];
@@ -47,7 +50,7 @@ int main(int argc, char **argv)
 
     if (listen(sockfd, 1) < 0)
     {
-        perror("Error listenning");
+        perror("Error listening");
         return 1;
     }
 
@@ -68,36 +71,15 @@ int main(int argc, char **argv)
 
         if (FD_ISSET(sockfd, &readfds))
         {
-            new_sock = accept(sockfd, (struct sockaddr *)&cliaddr, (socklen_t *)&len);
+            pthread_t tid;
+            int new_sock = accept(sockfd, (struct sockaddr *)&cliaddr, (socklen_t *)&len);
             if (new_sock < 0)
             {
                 perror("accept failed");
-                return 1;
+                return EXIT_FAILURE;
             }
-            r = 0;
-            do
-            {
-                n = recv(new_sock, buffer + r, MAX_LEN - r, 0);
-                if (n < 0)
-                {
-                    perror("Server error receiving data");
-                    return 1;
-                }
-                r += n;
-            } while (n);
-            buffer[r] = '\0';
-            printf("Server received: %s\n", buffer);
 
-            strcpy(buffer, "Thanks from TCP server!");
-            n = send(new_sock, buffer, strlen(buffer), 0);
-            if (n < 0)
-            {
-                perror("Server error sending data");
-                return 1;
-            }
-            shutdown(new_sock, SHUT_WR);
-
-            close(new_sock);
+            pthread_create(&tid, NULL, conn_handler, (void *)&new_sock);
         }
         else if (FD_ISSET(STDIN_FILENO, &readfds))
         {
@@ -114,4 +96,35 @@ int main(int argc, char **argv)
     close(sockfd);
 
     return 0;
+}
+
+void *conn_handler(void *args)
+{
+    char buffer[MAX_LEN] = {0};
+    int new_sock = *((int *)args);
+
+    int n, r = 0;
+    do
+    {
+        n = recv(new_sock, buffer + r, MAX_LEN - r, 0);
+        if (n < 0)
+        {
+            perror("Server error receiving data");
+            return 1;
+        }
+        r += n;
+    } while (n);
+    buffer[r] = '\0';
+    printf("Server received: %s\n", buffer);
+
+    strcpy(buffer, "Thanks from TCP server!");
+    n = send(new_sock, buffer, strlen(buffer), 0);
+    if (n < 0)
+    {
+        perror("Server error sending data");
+        return 1;
+    }
+    shutdown(new_sock, SHUT_WR);
+
+    close(new_sock);
 }
