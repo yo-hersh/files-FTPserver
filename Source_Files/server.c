@@ -1,16 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <pthread.h>
-
-#define MAX_LEN 1024
+#include "../Header_Files/utils.h"
 
 void *conn_handler(void *args);
+void mange_server();
 
 int main(int argc, char **argv)
 {
@@ -83,13 +80,7 @@ int main(int argc, char **argv)
         }
         else if (FD_ISSET(STDIN_FILENO, &readfds))
         {
-            fgets(buffer, sizeof(buffer), stdin);
-            printf("Received from stdin: %s", buffer);
-            if (!strncmp(buffer, "exit", 4))
-            {
-                puts("Exiting...");
-                break;
-            }
+            mange_server();
         }
     }
 
@@ -127,4 +118,27 @@ void *conn_handler(void *args)
     shutdown(new_sock, SHUT_WR);
 
     close(new_sock);
+}
+
+void mange_server()
+{
+    char buffer[21] = {0};
+    fgets(buffer, sizeof(buffer), stdin);
+    if (!strncmp(buffer, "exit", 4))
+    {
+        ///////////// do something
+    }
+    if (!strncmp(buffer, "add user", 8))
+    {
+        int res = add_user();
+        if (res)
+        {
+            puts("creation feild");
+        }
+        else
+        {
+            puts("created successfully");
+        }
+        
+    }
 }
