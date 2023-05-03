@@ -11,7 +11,6 @@
 void *conn_handler(void *args);
 void mange_server();
 void write_to_file(char *file_name, int socket_id);
-int send_func(int socket_id, char *str, int send_len);
 
 int main(int argc, char **argv)
 {

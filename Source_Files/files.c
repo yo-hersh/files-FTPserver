@@ -31,7 +31,7 @@ int send_file(char *file_name, SEND_FUNC send_func, int socket_id)
         size_t ret_code = fread(str, sizeof *str, MAX_LEN, file);
         if (ret_code)
         {
-            n = send_func(socket_id, str, ret_code);
+            n = send_func(socket_id, str, ret_code, 0);
         }
         else
         {
@@ -69,7 +69,7 @@ int recv_file(char *file_name, RECV_FUNC recv_func, int socket_id)
     do
     {
         memset(str, 0, strlen(str));
-        n = recv_func(socket_id, str, MAX_LEN);
+        n = recv_func(socket_id, str, MAX_LEN, 0);
         // n = recv(socket_id, str, MAX_LEN, 0);
         if (n < 0)
         {
