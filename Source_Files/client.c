@@ -61,6 +61,7 @@ int main(int argc, char **argv)
             if (!permission)
             {
                 puts("no permission");
+
                 close(sockfd);
                 continue;
             }
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-OPTIONS_E select_options()
+RECV_OPTIONS_E select_options()
 {
 }
 

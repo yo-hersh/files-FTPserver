@@ -10,7 +10,15 @@ typedef struct _BSTUsers
     struct _BSTUsers *left, *right;
 } BSTUsers;
 
-int add_user();
+typedef enum
+{
+    USER_NAME,
+    PASSWORD,
+    SIZEOF_FIELDS
+} USER_E;
 
-BSTUsers *get_users_list();
+
+int add_user();
+int login_func();
+void get_users_list(BSTUsers *head, BSTUsers *tail);
 #endif

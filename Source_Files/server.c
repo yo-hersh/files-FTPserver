@@ -10,7 +10,20 @@
 
 void *conn_handler(void *args);
 void mange_server();
-void write_to_file(char *file_name, int socket_id);
+
+typedef struct Recv_functions
+{
+    RECV_OPTIONS_E option;
+    int (*recv_func)(char *value, int socket_id);
+} Recv_functions;
+
+
+Recv_functions recv_functions[] = {
+    {LOGIN, login_func},
+    {GET_FILES_LIST, get_files_list},
+    {UPLOAD_FILE, upload_file},
+    {DOWNLOAD_FILE, send_file},
+};
 
 int main(int argc, char **argv)
 {
@@ -94,15 +107,37 @@ int main(int argc, char **argv)
 
 void *conn_handler(void *args)
 {
+    bool permission = false;
 
     char buffer[MAX_LEN] = {0};
+    int socket_id = *((int *)args);
+    int flag = 0;
+    while (!permission)
+    {
+        recv_func(socket_id, buffer, MAX_LEN, flag);
+        if (flag & BIT(LOGIN))
+        {
+            permission = (bool)recv_functions[LOGIN].recv_func(buffer, socket_id);
+        }
+        send(socket_id, (int)permission, sizeof(int), 0);
+        // send_func(socket_id, permission, sizeof(bool), 0);
+    }
+
+    recv_func(socket_id, buffer, MAX_LEN, flag);
     char *file_name = "server.c";
-    int new_sock = *((int *)args);
+    int ret_code = 0;
+    for (int i = 0; i < SIZEOF_OPTIONS; i++)
+    {
+        if (flag & BIT(i))
+        {
+            ret_code = recv_functions[i].recv_func(buffer, socket_id);
+        }
+    }
 
     int n, r = 0;
     // do
     // {
-    //     n = recv(new_sock, buffer + r, MAX_LEN - r, 0);
+    //     n = recv(socket_id, buffer + r, MAX_LEN - r, 0);
     //     if (n < 0)
     //     {
     //         perror("Server error receiving data");
@@ -112,18 +147,18 @@ void *conn_handler(void *args)
     // } while (n);
     // buffer[r] = '\0';
     // printf("Server received: %s\n", buffer);
-    send_file(file_name, send_func, new_sock);
-    // write_to_file(file_name, new_sock);
+    send_file(file_name, send_func, socket_id);
+    // write_to_file(file_name, socket_id);
     strcpy(buffer, "Thanks from TCP server!");
-    // n = send(new_sock, buffer, strlen(buffer), 0);
+    // n = send(socket_id, buffer, strlen(buffer), 0);
     if (n < 0)
     {
         perror("Server error sending data");
         // return 1?;
     }
-    shutdown(new_sock, SHUT_WR);
+    shutdown(socket_id, SHUT_WR);
 
-    close(new_sock);
+    close(socket_id);
 }
 
 void mange_server()

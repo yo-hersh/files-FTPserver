@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_LEN 1024
 #define FIELD_LEN 21
@@ -14,7 +15,8 @@ typedef enum
     UPLOAD_FILE,
     DOWNLOAD_FILE,
     SIZEOF_OPTIONS
-} OPTIONS_E;
+} RECV_OPTIONS_E;
+
 
 #define BIT(i) (1 << i)
 
