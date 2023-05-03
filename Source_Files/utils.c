@@ -10,6 +10,7 @@ int recv_func(int socket_id, char *str, int str_len)
     return recv(socket_id, str, str_len, 0);
 }
 
+{
 // void insert_to_bst(BSTNode *node, BSTNode **root)
 // {
 //     while (*root)

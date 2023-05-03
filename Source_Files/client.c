@@ -7,7 +7,9 @@
 #include <arpa/inet.h>
 #include "../Header_Files/files.h"
 
-#define MAX_LEN 4096
+#define FIELD_LEN 21
+
+int login_func();
 
 int main(int argc, char **argv)
 {
@@ -28,9 +30,12 @@ int main(int argc, char **argv)
     servaddr.sin_port = htons(atoi(argv[1]));
 
     /* Send data to the server */
+    if (login_func())
+    {
+        puts("no permission");
+    }
     while (1)
     {
-        // get_options();
         printf("Enter a message: ");
         fgets(buffer, MAX_LEN, stdin);
         if (!strncmp(buffer, "exit", 4))
@@ -82,3 +87,20 @@ int main(int argc, char **argv)
     close(sockfd);
     return 0;
 }
+
+OPTIONS_E select_options()
+{
+}
+
+int login_func()
+{
+    char user_name[FIELD_LEN] = {0}, password[FIELD_LEN] = {0};
+    puts("please enter user name, up to 20 characters");
+    fgets(user_name, FIELD_LEN, stdin);
+    clean_stdin();
+    puts("please enter password, up to 20 characters");
+    fgets(password, FIELD_LEN, stdin);
+    clean_stdin();
+    return 1;
+}
+
