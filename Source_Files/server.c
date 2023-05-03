@@ -93,29 +93,19 @@ int main(int argc, char **argv)
 
 void *conn_handler(void *args)
 {
+
     char buffer[MAX_LEN] = {0};
+    char *file_name = "test.txt";
     int new_sock = *((int *)args);
 
     int n, r = 0;
-    do
-    {
-        n = recv(new_sock, buffer + r, MAX_LEN - r, 0);
-        if (n < 0)
-        {
-            perror("Server error receiving data");
-            return 1;
-        }
-        r += n;
-    } while (n);
-    buffer[r] = '\0';
-    printf("Server received: %s\n", buffer);
-
+    read_from_file(file_name, new_sock);
     strcpy(buffer, "Thanks from TCP server!");
     n = send(new_sock, buffer, strlen(buffer), 0);
     if (n < 0)
     {
         perror("Server error sending data");
-        return 1;
+        // return 1?;
     }
     shutdown(new_sock, SHUT_WR);
 
@@ -142,4 +132,9 @@ void mange_server()
             puts("created successfully");
         }
     }
+}
+
+int send_func(int socket_id, char *str, int send_len)
+{
+    return send(socket_id, str, send_len, 0);
 }

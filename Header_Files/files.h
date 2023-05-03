@@ -8,10 +8,13 @@ typedef struct _BSTFiles
     struct _BSTFiles *left, *right;
 } BSTFiles;
 
+// typedef int (*SEND_FUNC)(int socket_id, int send_len);
+// typedef int (*RECV_FUNC)(int socket_id);
+
 BSTFiles *get_files_list();
 
 int upload_file();
 
-int download_file();
+int send_file(char *file_name, SEND_FUNC send_func, int socket_id);
 
 #endif

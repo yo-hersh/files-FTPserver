@@ -5,5 +5,8 @@
 #include <string.h>
 #define MAX_LEN 1024
 
+typedef int (*SEND_FUNC)(int ,char *, int);
+typedef int (*RECV_FUNC)(int );
+// typedef void (*READ_FROM_CLIENT_FUNC)(int);
 
 #endif
