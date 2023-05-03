@@ -16,5 +16,6 @@ BSTFiles *get_files_list();
 int upload_file();
 
 int send_file(char *file_name, SEND_FUNC send_func, int socket_id);
+int recv_file(char *file_name, RECV_FUNC recv_func, int socket_id);
 
 #endif

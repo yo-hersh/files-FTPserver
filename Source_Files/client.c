@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "../Header_Files/files.h"
 
 #define MAX_LEN 4096
 
@@ -29,6 +30,7 @@ int main(int argc, char **argv)
     /* Send data to the server */
     while (1)
     {
+        // get_options();
         printf("Enter a message: ");
         fgets(buffer, MAX_LEN, stdin);
         if (!strncmp(buffer, "exit", 4))
@@ -59,19 +61,20 @@ int main(int argc, char **argv)
         }
         shutdown(sockfd, SHUT_WR);
 
-        r = 0;
-        do
-        {
-            n = recv(sockfd, buffer + r, MAX_LEN - r, 0);
-            r += n;
-        } while (n > 0);
-        if (n < 0)
-        {
-            perror("Client error receiving data");
-            break;
-        }
-        buffer[r] = '\0';
-        printf("%s\n", buffer);
+        recv_file("server_copy.c", recv_func, sockfd);
+        // r = 0;
+        // do
+        // {
+        //     n = recv(sockfd, buffer + r, MAX_LEN - r, 0);
+        //     r += n;
+        // } while (n > 0);
+        // if (n < 0)
+        // {
+        //     perror("Client error receiving data");
+        //     break;
+        // }
+        // buffer[r] = '\0';
+        // printf("%s\n", buffer);
 
         close(sockfd);
     }
