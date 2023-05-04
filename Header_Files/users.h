@@ -19,6 +19,6 @@ typedef enum
 
 
 int add_user();
-int login_func();
+bool login_func();
 void get_users_list(BSTUsers *head, BSTUsers *tail);
 #endif

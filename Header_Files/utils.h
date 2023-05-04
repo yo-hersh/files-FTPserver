@@ -12,18 +12,21 @@ typedef enum
 {
     LOGIN,
     GET_FILES_LIST,
-    UPLOAD_FILE,
-    DOWNLOAD_FILE,
+    RECV_FILE,
+    SEND_FILE,
+    EXIT,
     SIZEOF_OPTIONS
 } RECV_OPTIONS_E;
 
 
 #define BIT(i) (1 << i)
 
-typedef int (*SEND_FUNC)(int, char *, int, int);
-typedef int (*RECV_FUNC)(int, char *, int, int);
-int send_func(int socket_id, char *str, int send_len, int flag);
-int recv_func(int socket_id, char *str, int str_len, int flag);
+typedef int (*SEND_FUNC)(int, char *, int, RECV_OPTIONS_E);
+typedef int (*RECV_FUNC)(int, char *, int, RECV_OPTIONS_E);
+int send_func(int socket_id, void *str, int send_len);
+int recv_func(int socket_id, void *str, int str_len);
 void clean_stdin(char *buf, int len);
+void perror_handling(char *msg);
+
 
 #endif

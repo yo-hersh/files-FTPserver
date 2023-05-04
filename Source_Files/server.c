@@ -13,16 +13,15 @@ void mange_server();
 
 typedef struct Recv_functions
 {
-    RECV_OPTIONS_E option;
+    RECV_OPTIONS_E OPTION;
     int (*recv_func)(char *value, int socket_id);
 } Recv_functions;
-
 
 Recv_functions recv_functions[] = {
     {LOGIN, login_func},
     {GET_FILES_LIST, get_files_list},
-    {UPLOAD_FILE, upload_file},
-    {DOWNLOAD_FILE, send_file},
+    {RECV_FILE, recv_file},
+    {SEND_FILE, send_file},
 };
 
 int main(int argc, char **argv)
@@ -47,9 +46,6 @@ int main(int argc, char **argv)
         perror("Error creating socket");
         return 1;
     }
-
-    // int flags = fcntl(sockfd, F_GETFL, 0);
-    // fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
     /* Bind the socket to a specific port */
     servaddr.sin_family = AF_INET;
@@ -111,54 +107,57 @@ void *conn_handler(void *args)
 
     char buffer[MAX_LEN] = {0};
     int socket_id = *((int *)args);
-    int flag = 0;
+    int ret_value;
+
+    RECV_OPTIONS_E OPTION;
+
     while (!permission)
     {
-        recv_func(socket_id, buffer, MAX_LEN, flag);
-        if (flag & BIT(LOGIN))
+        ret_value = recv_func(socket_id, &OPTION, sizeof(OPTION));
+        if (ret_value < 0)
+        {
+            perror_handling("error receiving option");
+            goto exit;
+        }
+        if (OPTION == LOGIN)
         {
             permission = (bool)recv_functions[LOGIN].recv_func(buffer, socket_id);
         }
-        send(socket_id, (int)permission, sizeof(int), 0);
-        // send_func(socket_id, permission, sizeof(bool), 0);
-    }
-
-    recv_func(socket_id, buffer, MAX_LEN, flag);
-    char *file_name = "server.c";
-    int ret_code = 0;
-    for (int i = 0; i < SIZEOF_OPTIONS; i++)
-    {
-        if (flag & BIT(i))
+        else
         {
-            ret_code = recv_functions[i].recv_func(buffer, socket_id);
+            printf("OOPS, client not send the login info\n");
+            goto exit;
+        }
+
+        ret_value = send(socket_id, (int)permission, sizeof(permission), 0);
+        if (ret_value < 0)
+        {
+            perror_handling("error receiving option");
+            goto exit;
         }
     }
 
-    int n, r = 0;
-    // do
-    // {
-    //     n = recv(socket_id, buffer + r, MAX_LEN - r, 0);
-    //     if (n < 0)
-    //     {
-    //         perror("Server error receiving data");
-    //         return 1;
-    //     }
-    //     r += n;
-    // } while (n);
-    // buffer[r] = '\0';
-    // printf("Server received: %s\n", buffer);
-    send_file(file_name, send_func, socket_id);
-    // write_to_file(file_name, socket_id);
-    strcpy(buffer, "Thanks from TCP server!");
-    // n = send(socket_id, buffer, strlen(buffer), 0);
-    if (n < 0)
+    bool client_running = true;
+    while (client_running)
     {
-        perror("Server error sending data");
-        // return 1?;
+        ret_value = recv_func(socket_id, &OPTION, sizeof(OPTION));
+        if (ret_value < 0)
+        {
+            perror_handling("error receiving option");
+            goto exit;
+        }
+        if (OPTION == EXIT)
+        {
+            client_running = false;
+            continue;
+        }
+        recv_functions[OPTION].recv_func(buffer, socket_id);
     }
-    shutdown(socket_id, SHUT_WR);
 
+exit:
     close(socket_id);
+    return;
+
 }
 
 void mange_server()

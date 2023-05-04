@@ -1,4 +1,8 @@
 #include "../Header_Files/files.h"
+#include <libgen.h>
+
+void get_file_name(const char *file_path, char *file_name);
+int get_file_size(FILE *file);
 
 BSTFiles *get_files_list()
 {
@@ -6,78 +10,119 @@ BSTFiles *get_files_list()
     ////////////// return a header of the bstNode of all lists
 }
 
-int upload_file(GET_TO_WRITE)
+int send_file(char *file_path, int socket_id)
 {
 
-    ///////////// upload file
-
-    ///////////// add the file to the bstNode
-    return 0;
-}
-
-int send_file(char *file_name, SEND_FUNC send_func, int socket_id)
-{
-    char str[MAX_LEN] = {0};
-    FILE *file = fopen(file_name, "rb");
+    FILE *file = fopen(file_path, "rb");
     if (!file)
     {
-        printf("%s, not exited", file_name);
-        return 1;
+        perror("error opening file");
+        return EXIT_FAILURE;
     }
-    int n;
-    do
+
+    char file_name[FIELD_LEN] = {0};
+    get_file_name(file_path, file_name);
+
+    int ret_value = send(socket_id, file_name, strlen(file_name), 0);
+    if (ret_value < 0)
     {
-        memset(str, 0, strlen(str));
-        size_t ret_code = fread(str, sizeof *str, MAX_LEN, file);
-        if (ret_code)
-        {
-            n = send_func(socket_id, str, ret_code, 0);
-        }
-        else
-        {
-            n = 0;
-        }
-        // printf("ret code = %lu, n = %d, str = %s \n", ret_code, n, str);
+        perror_handling("error sending file name");
+        goto error;
+    }
 
-        // if (ret_code == MAX_LEN)
-        // {
-        // }
-        // else
-        // { // error handling
-        //     if (feof(fp))
-        //         printf("Error reading test.bin: unexpected end of file\n");
-        //     else if (ferror(fp))
-        //     {
-        //         perror("Error reading test.bin");
-        //     }
-        // }
-    } while (n > 0);
+    int file_size = get_file_size(file);
+    ret_value = send(socket_id, &file_size, sizeof(file_size), 0);
+    if (ret_value < 0)
+    {
+        perror_handling("error sending file size");
+        goto error;
+    }
 
+    int bytes_sent = 0;
+    char buffer[MAX_LEN] = {0};
+
+    int bytes_read = fread(buffer, sizeof *buffer, MAX_LEN, file);
+    while (bytes_read)
+    {
+        bytes_sent += send_func(socket_id, buffer, bytes_read);
+        if (bytes_sent < 0)
+        {
+            perror_handling("error sending file");
+            goto error;
+        }
+        bytes_read = fread(buffer, sizeof *buffer, MAX_LEN, file);
+    }
+
+    printf("error: not sending all data");
     fclose(file);
+
+    return EXIT_SUCCESS;
+error:
+    fclose(file);
+    return EXIT_FAILURE;
 }
 
-int recv_file(char *file_name, RECV_FUNC recv_func, int socket_id)
+int recv_file( int socket_id, char *folder_to_save_in_it)
 {
-    char str[MAX_LEN] = {0};
-    FILE *file = fopen(file_name, "a+");
+    int file_name[FIELD_LEN] = {0};
+
+    int ret_value = recv(socket_id, &file_name, strlen(file_name), 0);
+    if (ret_value < 0)
+    {
+        perror_handling("error receiving file name");
+        return EXIT_FAILURE;
+    }
+
+    char file_path[MAX_LEN] = {0};
+    snprintf(file_path, strlen(file_path), "../%s/%s", folder_to_save_in_it, file_name);
+    FILE *file = fopen(file_path, "a+");
     if (!file)
     {
-        printf("%s, not exited", file_name);
-        // return 1;
+        perror("error opening file");
+        return EXIT_FAILURE;
     }
-    int n;
-    do
+
+    int file_size = 0;
+    ret_value = recv(socket_id, &file_size, sizeof(file_size), 0);
+    if (ret_value < 0)
     {
-        memset(str, 0, strlen(str));
-        n = recv_func(socket_id, str, MAX_LEN, 0);
-        // n = recv(socket_id, str, MAX_LEN, 0);
-        if (n < 0)
+        perror_handling("error receiving file size");
+        goto error;
+    }
+
+    char buffer[MAX_LEN];
+
+    while (file_size)
+    {
+        memset(buffer, strlen(buffer), 0);
+        ret_value = recv(socket_id, buffer, sizeof(buffer), 0);
+        if (ret_value < 0)
         {
-            perror("Server error receiving data");
-            // return 1;
+            perror_handling("error receiving file data");
+            goto error;
         }
-        str[n] = '\0';
-        fwrite(str, sizeof(char), strlen(str), file);
-    } while (n);
+        fwrite(buffer, sizeof(char), ret_value, file);
+
+        file_size -= ret_value;
+    }
+
+    printf("receiving file %s successfully\n", file_name);
     fclose(file);
+    return EXIT_SUCCESS;
+error:
+    fclose(file);
+    return EXIT_FAILURE;
+}
+
+int get_file_size(FILE *file)
+{
+    fseek(file, 0, SEEK_END);
+    int size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    return size;
+}
+
+void get_file_name(const char *file_path, char *file_name)
+{
+    file_name = basename(file_path);
 }

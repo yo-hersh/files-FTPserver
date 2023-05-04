@@ -1,8 +1,8 @@
 #include "../Header_Files/utils.h"
 
-int send_func(int socket_id, char *str, int send_len, int flag)
+int send_func(int socket_id, void *str, int send_len)
 {
-    int n = send(socket_id, str, send_len, flag);
+    int n = send(socket_id, str, send_len, 0);
     if (n < 0)
     {
         perror("Server error sending data");
@@ -10,14 +10,13 @@ int send_func(int socket_id, char *str, int send_len, int flag)
     return n;
 }
 
-int recv_func(int socket_id, char *str, int str_len, int flag)
+int recv_func(int socket_id, void *str, int str_len)
 {
-    int n = recv(socket_id, str, str_len, flag);
+    int n = recv(socket_id, str, str_len);
     if (n < 0)
     {
         perror("Server error receiving data");
     }
-    str[n] = '\0';
     return n;
 }
 
@@ -33,6 +32,11 @@ void clean_stdin(char *buf, int len)
         while (getchar() != '\n')
             ;
     }
+}
+
+void perror_handling(char *msg)
+{
+    perror(msg);
 }
 
 // void insert_to_bst(BSTNode *node, BSTNode **root)

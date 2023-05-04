@@ -59,4 +59,4 @@ void get_users_list(BSTUsers *head, BSTUsers *tail)
     return NULL;
 }
 
-int login_func(){return 0;};
+bool login_func(){return true;};
