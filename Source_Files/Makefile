@@ -28,20 +28,14 @@ utils.o: utils.c
 clean:
 	rm -f *.o local server client
 
-# run_local:
-# 	./local utils.csv
-
 run_server:
-	./server 12354
+	./server 12345
 
 run_client:
-	./client 12354
-
-# debug_local:
-# 	gutils --args ./local utils.csv
+	./client 12345
 
 debug_server:
-	gutils --args ./server 12345
+	gdb --args ./server 12345
 
 debug_client:
-	gutils --args ./client 12345
+	gdb --args ./client 12345
