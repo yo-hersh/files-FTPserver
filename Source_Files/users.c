@@ -1,8 +1,8 @@
 #include "../Header_Files/users.h"
 
-int add_user(BSTUsers *Head, BSTUsers *tail)
+int add_user(BSTUsers *Head)
 {
-    int buffer[21] = {0};
+    int user_name[FIELD_LEN] = {0}, password[FIELD_LEN] = {0};
     BSTUsers *new_user = calloc(1, sizeof(BSTUsers));
     if (!new_user)
     {
@@ -10,22 +10,26 @@ int add_user(BSTUsers *Head, BSTUsers *tail)
         return 1;
     }
 
-    puts("please insert user name - up to 20 char");
-    fgets(buffer, sizeof(buffer), stdin);
-    strcpy(new_user->user_name, buffer);
+    get_from_stdin(user_name, FIELD_LEN, "please insert user name - up to 20 char");
 
-    puts("please insert password - up to 20 char");
-    fgets(buffer, sizeof(buffer), stdin);
-    strcpy(new_user->password, buffer);
+    get_from_stdin(password, FIELD_LEN, "please insert password - up to 20 char");
 
+    strcpy(new_user->user_name, user_name);
+    strcpy(new_user->password, password);
+
+    if (add_user_to_db_file(new_user))
+    {
+        // error
+    }
+    // add_to_bstUsers()
     return 0;
 }
 
-void get_users_list(BSTUsers *head, BSTUsers *tail)
+void get_users_list(BSTUsers *head)
 {
     char buf[45] = {0};
     FILE *file;
-    file = fopen("users.csv", "r");
+    file = fopen(USERS_FILE, "r");
 
     if (!file)
     {
@@ -40,6 +44,7 @@ void get_users_list(BSTUsers *head, BSTUsers *tail)
         {
             buf[strlen(buf) - 1] = '\0';
         }
+
         char *value = strtok(buf, ",");
         for (int i = 0; i < SIZEOF_FIELDS; i++)
         {
@@ -53,10 +58,42 @@ void get_users_list(BSTUsers *head, BSTUsers *tail)
                 break;
             }
         }
-        // add_to_bstUsers(head, tail, new);
+        add_to_bstUsers(head, new);
     }
     fclose(file);
     return NULL;
 }
 
-bool login_func(){return true;};
+bool login_func(char *value, int socket_id)
+{
+    recv_func(socket_id, value, MAX_LEN);
+    bool found = false;
+
+    
+
+    // check the value of user_name and password
+    return false;
+};
+
+int add_user_to_db_file(BSTUsers *new_user)
+{
+    FILE *file = fopen(USERS_FILE, "a+");
+
+    if (!file)
+    {
+        perror_handling("error opening users file");
+        return 1;
+    }
+
+    char new_line[MAX_LEN] = {0};
+    sprintf(new_line, "%s,%s\n", new_user->user_name, new_user->password);
+    if (fputs(&new_line, file) == EOF)
+    {
+        perror_handling("error writing new line to users file");
+        fclose(file);
+        return 1;
+    }
+
+    fclose(file);
+    return 0;
+}
