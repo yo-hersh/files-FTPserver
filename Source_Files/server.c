@@ -65,6 +65,8 @@ int main(int argc, char **argv)
     }
 
     bool server_running = true;
+    BSTUsers *head = NULL;
+    get_users_list(&head);
     /* Receive data from clients */
     while (server_running)
     {
@@ -199,6 +201,6 @@ void mange_server(int socket_id)
     }
 }
 
-int exit_func(char *value, int socket_id){
+// int exit_func(char *value, int socket_id){
 
-};
+// };
