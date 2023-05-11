@@ -16,17 +16,18 @@ typedef enum
     SEND_FILE,
     EXIT,
     SIZEOF_OPTIONS
-} RECV_OPTIONS_E;
+} CONNECTION_OPTIONS_E;
 
 
 #define BIT(i) (1 << i)
 
-typedef int (*SEND_FUNC)(int, char *, int, RECV_OPTIONS_E);
-typedef int (*RECV_FUNC)(int, char *, int, RECV_OPTIONS_E);
+typedef int (*SEND_FUNC)(int, char *, int, CONNECTION_OPTIONS_E);
+typedef int (*RECV_FUNC)(int, char *, int, CONNECTION_OPTIONS_E);
 int send_func(int socket_id, void *str, int send_len);
 int recv_func(int socket_id, void *str, int str_len);
-void clean_stdin(char *buf, int len);
+void clean_stdin(char *buf);
 void perror_handling(char *msg);
+void get_from_stdin(char *buf, int buf_len, char *msg);
 
 
 #endif
