@@ -9,7 +9,7 @@
 #include "../Header_Files/files.h"
 #include "../Header_Files/utils.h"
 
-bool login(int socket_id);
+void login(int socket_id, bool *permission, bool *client_running);
 
 int main(int argc, char **argv)
 {
@@ -30,9 +30,9 @@ int main(int argc, char **argv)
     servaddr.sin_port = htons(atoi(argv[1]));
 
     /* Send data to the server */
-    bool permission = false;
+    bool client_running = true, permission = false;
 
-    while (1)
+    while (client_running)
     {
         /* Create a socket */
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -48,10 +48,10 @@ int main(int argc, char **argv)
             perror("Error connecting");
             break;
         }
-        /*
+
         if (!permission)
         {
-            permission = login(sockfd);
+            login(sockfd, &permission, &client_running);
             if (!permission)
             {
                 puts("no permission");
@@ -59,17 +59,39 @@ int main(int argc, char **argv)
                 close(sockfd);
                 continue;
             }
-        }*/
-        RECV_OPTIONS_E OPTION;
-        /* test sending file*/
-        OPTION = SEND_FILE;
+        }
 
-        send(sockfd, OPTION, sizeof(int), 0);
+        scanf("%c", &buffer);
+        CONNECTION_OPTIONS_E OPTION;
+        /* Set the option buffer value to LOGIN */
+        OPTION = LOGIN;
+        int option_buf = (int)OPTION;
+        printf("permission = %d\n", (int)permission);
 
-        send_file("../Header_Files/files.h", sockfd);
-        shutdown(sockfd, SHUT_WR);
+        send(sockfd, &option_buf, sizeof(int), 0);
+
+        char user_name[FIELD_LEN] = "username";
+        char password[FIELD_LEN] = "password";
+        char str[MAX_LEN] = {0};
+        sprintf(str, "%s:%s", user_name, password);
+
+        recv(sockfd, &permission, sizeof(permission), 0);
+        printf("permission = %d\n", (int)permission);
+
+        // /* test sending file*/
+        // // OPTION = SEND_FILE;
+        // OPTION = LOGIN;
+        // int option_buf;
+        // option_buf = (int)OPTION;
+        // printf("%d\n", option_buf);
+        // option_buf = 0;
+        // printf("%d\n", option_buf);
+        // send(sockfd, &option_buf, sizeof(int), 0);
+
+        // send_file("../Header_Files/files.h", sockfd);
+        // shutdown(sockfd, SHUT_WR);
         /**/
-        
+        // break;
         close(sockfd);
     }
 
@@ -77,15 +99,15 @@ int main(int argc, char **argv)
     return 0;
 }
 
-RECV_OPTIONS_E select_options()
+CONNECTION_OPTIONS_E select_options()
 {
 }
 
-bool login(int socket_id)
+void login(int socket_id, bool *permission, bool *client_running)
 {
-    char user_name[FIELD_LEN] = {0}, password[FIELD_LEN] = {0};
-    char str[FIELD_LEN * 3] = {0};
-    int flag = 0;
+    char user_name[FIELD_LEN] = {0}, password[FIELD_LEN] = {0},
+         str[MAX_LEN] = {0};
+    int ret_value;
     puts("please enter user name, up to 20 characters");
     /////////////////// validation needed for ensure these no included : in the name
     fgets(user_name, FIELD_LEN, stdin);
@@ -94,17 +116,31 @@ bool login(int socket_id)
     fgets(password, FIELD_LEN, stdin);
     // clean_stdin(password, strlen(user_name));
 
-    flag |= BIT(LOGIN);
-    send_func(socket_id, &flag, sizeof(flag));
+    int option = (int)LOGIN;
+    ret_value = send_func(socket_id, &option, sizeof(option));
+    if (ret_value < 0)
+    {
+        goto exit;
+    }
 
     sprintf(str, "%s:%s", user_name, password);
-    printf("%s\n", str);
-    send_func(socket_id, str, strlen(str));
+    ret_value = send_func(socket_id, str, strlen(str));
+    if (ret_value < 0)
+    {
+        goto exit;
+    }
+    printf("permission = %d\n", (int)*permission);
 
-    bool permission = false;
-    printf("%d\n", permission);
+    ret_value = recv_func(socket_id, permission, sizeof(permission));
+    printf("permission = %d\n", (int)*permission);
+    if (ret_value < 0)
+    {
+        permission = false;
+        goto exit;
+    }
 
-    recv_func(socket_id, (int *)&permission, sizeof(int));
-    printf("%d\n", permission);
-    return permission;
+    return;
+exit:
+    puts("login not finished, re-login needed");
+    return;
 }
