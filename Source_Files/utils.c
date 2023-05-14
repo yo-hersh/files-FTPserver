@@ -1,3 +1,4 @@
+#include <time.h>
 #include "../Header_Files/utils.h"
 
 int send_func(int socket_id, void *str, int send_len)
@@ -19,7 +20,6 @@ int recv_func(int socket_id, void *str, int str_len)
     }
     return n;
 }
-
 
 void perror_handling(char *msg)
 {
@@ -44,7 +44,8 @@ void get_from_stdin(char *buf, int buf_len, char *msg)
 void clean_stdin(char *buf)
 {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF);
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
     // buf[0] = '\0';
 }
 
@@ -63,3 +64,34 @@ void clean_stdin(char *buf)
 //     }
 //     *root = node;
 // }
+
+// int exit_func(int socket_id, bstUsers *users_head, bstFiles *files_head)
+// {
+
+//     return 0;
+// }
+int exit_func(int socket_id){return 0;}
+
+void add_log_message(const char *message)
+{
+    FILE *log_file = fopen("log_file.txt", "a");
+    if (log_file == NULL)
+    {
+        perror("Error opening log file");
+        return;
+    }
+
+    // Get current time
+    time_t raw_time;
+    struct tm *time_info;
+    time(&raw_time);
+    time_info = localtime(&raw_time);
+
+    // Print formatted message to file
+    fprintf(log_file, "[%02d-%02d-%d %02d:%02d:%02d] %s\n", time_info->tm_mday ,
+            time_info->tm_mon + 1, time_info->tm_year +1900, time_info->tm_hour, time_info->tm_min,
+            time_info->tm_sec, message);
+
+    // Close file
+    fclose(log_file);
+}

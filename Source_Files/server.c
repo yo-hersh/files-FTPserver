@@ -25,6 +25,9 @@ Connections_func connections_func[] = {
     {EXIT, exit_func},
 };
 
+bstFiles *files_head = NULL;
+bstUsers *users_head = NULL;
+
 int main(int argc, char **argv)
 {
     int sockfd;
@@ -64,9 +67,11 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    add_log_message("start server");
+
     bool server_running = true;
-    BSTUsers *head = NULL;
-    get_users_list(&head);
+    // bstUsers *head = NULL;
+    get_users_list(&users_head);
     /* Receive data from clients */
     while (server_running)
     {
@@ -80,7 +85,6 @@ int main(int argc, char **argv)
         {
             perror("select failed");
             goto exit;
-            // return EXIT_FAILURE;
         }
 
         if (FD_ISSET(sockfd, &readfds))
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 exit:
-    exit_func(NULL, sockfd);
+    // exit_func(sockfd);
     // close(sockfd);
     return EXIT_FAILURE;
 }
@@ -120,7 +124,7 @@ void *conn_handler(void *args)
     int ret_value;
 
     CONNECTION_OPTIONS_E OPTION;
-    int option_buf = 2;
+    int option_buf;
 
     ret_value = recv(socket_id, &option_buf, sizeof(option_buf), 0);
     if (ret_value < 0)
@@ -128,8 +132,6 @@ void *conn_handler(void *args)
         perror_handling("error receiving option");
         goto exit;
     }
-    printf("ret_value = %d\n", ret_value);
-    printf("%u, %d\n", (unsigned int)option_buf, option_buf);
 
     OPTION = (CONNECTION_OPTIONS_E)option_buf;
     if (!permission)
@@ -159,18 +161,31 @@ void *conn_handler(void *args)
 
     while (client_running)
     {
-        ret_value = recv_func(socket_id, &OPTION, sizeof(OPTION));
+        switch (OPTION)
+        {
+        case GET_FILES_LIST:
+            ret_value = send_files_list(socket_id, files_head);
+            break;
+        case SEND_FILE:
+            ret_value = recv_file(socket_id, "../server_public_files");
+            break;
+        case RECV_FILE:
+            ret_value = send_file_func(socket_id);
+            break;
+        case EXIT:
+            client_running = false;
+            continue;
+        }
+        if (ret_value)
+            goto exit;
+
+        ret_value = recv(socket_id, &option_buf, sizeof(option_buf), 0);
         if (ret_value < 0)
         {
             perror_handling("error receiving option");
             goto exit;
         }
-        if (OPTION == EXIT)
-        {
-            client_running = false;
-            continue;
-        }
-        connections_func[OPTION].connect_func(buffer, socket_id);
+        OPTION = (CONNECTION_OPTIONS_E)option_buf;
     }
 
 exit:
@@ -184,8 +199,7 @@ void mange_server(int socket_id)
     fgets(buffer, sizeof(buffer), stdin);
     if (!strncmp(buffer, "exit", 4))
     {
-        exit_func(NULL,socket_id);
-        ///////////// do something
+        // exit_func(socket_id);
     }
     if (!strncmp(buffer, "add user", 8))
     {
@@ -200,7 +214,3 @@ void mange_server(int socket_id)
         }
     }
 }
-
-// int exit_func(char *value, int socket_id){
-
-// };

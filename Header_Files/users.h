@@ -3,13 +3,13 @@
 
 #include "../Header_Files/utils.h"
 
-#define USERS_FILE "users.csv"
-typedef struct _BSTUsers
-{
-    char user_name[FIELD_LEN];
-    char password[FIELD_LEN];
-    struct _BSTUsers *left, *right;
-} BSTUsers;
+#define USERS_FILE "./users.csv"
+// typedef struct _bstUsers
+// {
+//     char user_name[FIELD_LEN];
+//     char password[FIELD_LEN];
+//     struct _bstUsers *left, *right;
+// } bstUsers;
 
 typedef enum
 {
@@ -21,5 +21,5 @@ typedef enum
 
 int add_user();
 bool login_func();
-void get_users_list(BSTUsers *head);
+void get_users_list(bstUsers *head);
 #endif

@@ -62,7 +62,7 @@ error:
     return EXIT_FAILURE;
 }
 
-int recv_file( int socket_id, char *folder_to_save_in_it)
+int recv_file(int socket_id, char *folder_to_save_in_it)
 {
     int file_name[FIELD_LEN] = {0};
 
@@ -126,3 +126,26 @@ void get_file_name(const char *file_path, char *file_name)
 {
     file_name = basename(file_path);
 }
+
+int send_files_list(int socket_id, bstFiles *files_head)
+{
+    char buf[MAX_LEN] = {0};
+    while (files_head)
+    {
+        /* code */
+    }
+
+    return 0;
+}
+
+// void get_all_files_from_bst(void *root)
+// {
+//     if (root == NULL)
+//     {
+//         return;
+//     }
+
+//     show(root->left);
+//     printf("%d ", root->data);
+//     show(root->right);
+// }

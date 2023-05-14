@@ -1,9 +1,9 @@
 #include "../Header_Files/users.h"
 
-int add_user(BSTUsers *Head)
+int add_user(bstUsers **head)
 {
     int user_name[FIELD_LEN] = {0}, password[FIELD_LEN] = {0};
-    BSTUsers *new_user = calloc(1, sizeof(BSTUsers));
+    bstUsers *new_user = calloc(1, sizeof(bstUsers));
     if (!new_user)
     {
         perror("allocated new_user filed!");
@@ -21,11 +21,11 @@ int add_user(BSTUsers *Head)
     {
         // error
     }
-    // add_to_bstUsers()
+    add_to_bstUsers(head, new_user);
     return 0;
 }
 
-void get_users_list(BSTUsers *head)
+void get_users_list(bstUsers *head)
 {
     char buf[45] = {0};
     FILE *file;
@@ -36,10 +36,9 @@ void get_users_list(BSTUsers *head)
         printf("Error: users.csv c'ent be opening.\n");
         return 1;
     }
-
     while (fgets(buf, 45, file))
     {
-        BSTUsers *new = calloc(1, sizeof(BSTUsers));
+        bstUsers *new = calloc(1, sizeof(bstUsers));
         if (buf[strlen(buf) - 1] == '\n')
         {
             buf[strlen(buf) - 1] = '\0';
@@ -68,14 +67,21 @@ bool login_func(char *value, int socket_id)
 {
     recv_func(socket_id, value, MAX_LEN);
     bool found = false;
-
+    char field = strtok(value, ',');
     
+
+    for (int i = 0; i < SIZEOF_FIELDS; i++)
+    {
+
+
+        /* code */
+    }
 
     // check the value of user_name and password
     return false;
 };
 
-int add_user_to_db_file(BSTUsers *new_user)
+int add_user_to_db_file(bstUsers *new_user)
 {
     FILE *file = fopen(USERS_FILE, "a+");
 
@@ -96,4 +102,23 @@ int add_user_to_db_file(BSTUsers *new_user)
 
     fclose(file);
     return 0;
+}
+
+void add_to_bstUsers(bstUsers **root, bstUsers *new)
+{
+    if (!*root)
+    {
+
+        (*root) = new;
+        return;
+    }
+
+    if (new->user_name <= (*root)->user_name)
+    {
+        add_to_bstUsers(&(*root)->left, new);
+    }
+    else
+    {
+        add_to_bstUsers(&(*root)->right, new);
+    }
 }
