@@ -32,6 +32,14 @@ typedef struct _bstFiles
     struct _bstFiles *left, *right;
 } bstFiles;
 
+
+typedef struct {
+    int socket_id;
+    char **users_arr;
+    char **files_arr;
+} conn_handler_args_t;
+
+
 #define BIT(i) (1 << i)
 
 typedef int (*SEND_FUNC)(int, char *, int, CONNECTION_OPTIONS_E);

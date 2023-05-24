@@ -70,7 +70,10 @@ void clean_stdin(char *buf)
 
 //     return 0;
 // }
-int exit_func(int socket_id){return 0;}
+int exit_func(int socket_id)
+{
+    return 0;
+}
 
 void add_log_message(const char *message)
 {
@@ -88,8 +91,8 @@ void add_log_message(const char *message)
     time_info = localtime(&raw_time);
 
     // Print formatted message to file
-    fprintf(log_file, "[%02d-%02d-%d %02d:%02d:%02d] %s\n", time_info->tm_mday ,
-            time_info->tm_mon + 1, time_info->tm_year +1900, time_info->tm_hour, time_info->tm_min,
+    fprintf(log_file, "[%02d-%02d-%d %02d:%02d:%02d] %s\n", time_info->tm_mday,
+            time_info->tm_mon + 1, time_info->tm_year + 1900, time_info->tm_hour, time_info->tm_min,
             time_info->tm_sec, message);
 
     // Close file

@@ -20,6 +20,7 @@ typedef enum
 
 
 int add_user();
-bool login_func();
+bool login_func(char *value, int socket_id);
+
 void get_users_list(bstUsers *head);
 #endif

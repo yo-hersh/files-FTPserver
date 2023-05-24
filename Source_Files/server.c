@@ -9,24 +9,7 @@
 #include "../Header_Files/users.h"
 
 void *conn_handler(void *args);
-void mange_server(int socket_id);
-
-typedef struct
-{
-    CONNECTION_OPTIONS_E OPTION;
-    int (*connect_func)(char *value, int socket_id);
-} Connections_func;
-
-Connections_func connections_func[] = {
-    {LOGIN, login_func},
-    {GET_FILES_LIST, get_files_list},
-    {RECV_FILE, recv_file},
-    {SEND_FILE, send_file},
-    {EXIT, exit_func},
-};
-
-bstFiles *files_head = NULL;
-bstUsers *users_head = NULL;
+void mange_server(int socket_id, bool *server_running);
 
 int main(int argc, char **argv)
 {
@@ -67,11 +50,19 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    add_log_message("start server");
+    add_log_message("Server started");
 
     bool server_running = true;
-    // bstUsers *head = NULL;
-    get_users_list(&users_head);
+    char **users_arr = NULL, **files_arr = NULL;
+
+    get_users_list(users_arr);
+
+    conn_handler_args_t args =
+        {
+            .users_arr = users_arr,
+            .files_arr = files_arr,
+        };
+
     /* Receive data from clients */
     while (server_running)
     {
@@ -95,32 +86,34 @@ int main(int argc, char **argv)
             {
                 perror("accept failed");
                 goto exit;
-                // return EXIT_FAILURE;
             }
+            args.socket_id = &new_sock;
 
-            pthread_create(&tid, NULL, conn_handler, (void *)&new_sock);
+            pthread_create(&tid, NULL, conn_handler, (void *)&args);
         }
         else if (FD_ISSET(STDIN_FILENO, &readfds))
         {
-            mange_server(sockfd);
+            mange_server(sockfd, &server_running);
         }
     }
 
     close(sockfd);
-
     return EXIT_SUCCESS;
 exit:
-    // exit_func(sockfd);
-    // close(sockfd);
+    close(sockfd);
     return EXIT_FAILURE;
 }
 
 void *conn_handler(void *args)
 {
+    conn_handler_args_t *handler_args = (conn_handler_args_t *)args;
+    int socket_id = *(int *)handler_args->socket_id;
+    char **users_arr = handler_args->users_arr;
+    char **files_arr = handler_args->files_arr;
+
     bool permission = false;
 
     char buffer[MAX_LEN] = {0};
-    int socket_id = *((int *)args);
     int ret_value;
 
     CONNECTION_OPTIONS_E OPTION;
@@ -139,7 +132,7 @@ void *conn_handler(void *args)
 
         if (OPTION == LOGIN)
         {
-            permission = (bool)connections_func[LOGIN].connect_func(buffer, socket_id);
+            permission = login_func(buffer, socket_id);
             if (!permission)
                 goto exit;
         }
@@ -164,7 +157,7 @@ void *conn_handler(void *args)
         switch (OPTION)
         {
         case GET_FILES_LIST:
-            ret_value = send_files_list(socket_id, files_head);
+            ret_value = send_files_list(socket_id, files_arr);
             break;
         case SEND_FILE:
             ret_value = recv_file(socket_id, "../server_public_files");
@@ -193,13 +186,14 @@ exit:
     return;
 }
 
-void mange_server(int socket_id)
+void mange_server(int socket_id, bool *server_running)
 {
     char buffer[MAX_LEN] = {0};
     fgets(buffer, sizeof(buffer), stdin);
     if (!strncmp(buffer, "exit", 4))
     {
-        // exit_func(socket_id);
+        *server_running = false;
+        return;
     }
     if (!strncmp(buffer, "add user", 8))
     {
