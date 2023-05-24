@@ -1,14 +1,9 @@
 #include "../Header_Files/files.h"
 #include <libgen.h>
 
+void get_files_list(char **files_arr);
 void get_file_name(const char *file_path, char *file_name);
 int get_file_size(FILE *file);
-
-BSTFiles *get_files_list()
-{
-    return NULL;
-    ////////////// return a header of the bstNode of all lists
-}
 
 int send_file(char *file_path, int socket_id)
 {
@@ -127,25 +122,48 @@ void get_file_name(const char *file_path, char *file_name)
     file_name = basename(file_path);
 }
 
-int send_files_list(int socket_id, bstFiles *files_head)
+int send_files_list(int socket_id, char **files_arr)
 {
-    char buf[MAX_LEN] = {0};
-    while (files_head)
+    char buffer[MAX_LEN] = {0};
+
+    int num_files = 0;
+    while (files_arr[num_files] != NULL)
     {
-        /* code */
+        num_files++;
     }
 
+    int ret_value;
+
+    ret_value = send(socket_id, &num_files, sizeof(num_files), 0);
+    if (ret_value < 0)
+    {
+        perror("send num_files failed");
+        return 1;
+    }
+
+    int file_len = 0, index = 0;
+    for (int i = 0; i < num_files; i++)
+    {
+        file_len = strlen(files_arr[i]) + 1;
+        if (index + file_len < MAX_LEN)
+        {
+            snprintf(buffer + index, MAX_LEN - index, "%s,", files_arr[i]);
+            index += file_len;
+        }
+        else
+        {
+            i--;
+        }
+        if (!(index + file_len < MAX_LEN) || i == num_files)
+        {
+            ret_value = send(socket_id, buffer, MAX_LEN, 0);
+            if (ret_value < 0)
+            {
+                perror("send file names failed");
+                return 1;
+            }
+            index = 0;
+        }
+    }
     return 0;
 }
-
-// void get_all_files_from_bst(void *root)
-// {
-//     if (root == NULL)
-//     {
-//         return;
-//     }
-
-//     show(root->left);
-//     printf("%d ", root->data);
-//     show(root->right);
-// }
