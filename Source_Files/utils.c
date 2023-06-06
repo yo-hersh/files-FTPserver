@@ -84,17 +84,14 @@ void add_log_message(const char *message)
         return;
     }
 
-    // Get current time
     time_t raw_time;
     struct tm *time_info;
     time(&raw_time);
     time_info = localtime(&raw_time);
 
-    // Print formatted message to file
     fprintf(log_file, "[%02d-%02d-%d %02d:%02d:%02d] %s\n", time_info->tm_mday,
             time_info->tm_mon + 1, time_info->tm_year + 1900, time_info->tm_hour, time_info->tm_min,
             time_info->tm_sec, message);
 
-    // Close file
     fclose(log_file);
 }
