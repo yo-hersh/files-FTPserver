@@ -61,37 +61,11 @@ int main(int argc, char **argv)
             }
         }
 
-        scanf("%c", &buffer);
-        CONNECTION_OPTIONS_E OPTION;
-        /* Set the option buffer value to LOGIN */
-        OPTION = LOGIN;
-        int option_buf = (int)OPTION;
-        printf("permission = %d\n", (int)permission);
+        /* test sending file*/
 
-        send(sockfd, &option_buf, sizeof(int), 0);
-
-        char user_name[FIELD_LEN] = "username";
-        char password[FIELD_LEN] = "password";
-        char str[MAX_LEN] = {0};
-        sprintf(str, "%s:%s", user_name, password);
-
-        recv(sockfd, &permission, sizeof(permission), 0);
-        printf("permission = %d\n", (int)permission);
-
-        // /* test sending file*/
-        // // OPTION = SEND_FILE;
-        // OPTION = LOGIN;
-        // int option_buf;
-        // option_buf = (int)OPTION;
-        // printf("%d\n", option_buf);
-        // option_buf = 0;
-        // printf("%d\n", option_buf);
-        // send(sockfd, &option_buf, sizeof(int), 0);
-
-        // send_file("../Header_Files/files.h", sockfd);
-        // shutdown(sockfd, SHUT_WR);
-        /**/
-        // break;
+        send_file("../Header_Files/files.h", sockfd);
+        shutdown(sockfd, SHUT_WR);
+        break;
         close(sockfd);
     }
 
@@ -135,7 +109,7 @@ void login(int socket_id, bool *permission, bool *client_running)
     printf("permission = %d\n", (int)*permission);
     if (ret_value < 0)
     {
-        permission = false;
+        *permission = false;
         goto exit;
     }
 
